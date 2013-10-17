@@ -1,0 +1,144 @@
+CTYPE html>
+<meta charset="utf-8">
+<style>
+
+body {
+  font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #010;
+  shape-rendering: crispEdges;
+}
+
+.dot {
+  stroke: #000;
+}
+
+div.tooltip {   
+  position: absolute;           
+  text-align: center;
+  text-justify: auto;
+  text-decoration: blink;
+  width: 300px;                  
+  height: 25px;                 
+  padding: 2px;             
+  font: 14px helvetica;        
+  background: none;   
+  border: 0px;      
+  border-radius: 00px;           
+  pointer-events: none;
+  opacity: 10
+}
+
+</style>
+<body>
+<script type = "text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
+<script>
+
+var margin = {top: 20, right: 20, bottom: 30, left: 40},
+    width = 1200 - margin.left - margin.right,
+    height = 700 - margin.top - margin.bottom;
+
+var x = d3.scale.linear()
+    .range([0, width]);
+
+var y = d3.scale.linear()
+    .range([height, 0]);
+
+var color = d3.scale.category10();
+
+var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom");
+
+var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left");
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+var tooltip = d3.select("body")
+	.append("div")
+        .attr("class", "tooltip")
+	.style("z-index", "10")
+	.style("visibility", "visible");
+	//.text("tooltip");
+    
+d3.csv("Shops_Email_Dash_daily.csv", function(error, data) {
+  data.forEach(function(d) {
+    d.OR = parseFloat(d.OR);
+    d.CTR = parseFloat(d.CTR);
+    d.Sent = parseInt(d.Sent)
+  });
+
+  x.domain(d3.extent(data, function(d) { return +d.OR; })).nice();
+  y.domain(d3.extent(data, function(d) { return +d.CTR; })).nice();
+
+  svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis)
+    .append("text")
+      .attr("class", "label")
+      .attr("x", width)
+      .attr("y", -6)
+      .style("text-anchor", "end")
+      .text("Open Rate (%)");
+
+  svg.append("g")
+      .attr("class", "y axis")
+      .call(yAxis)
+    .append("text")
+      .attr("class", "label")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 6)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end")
+      .text("Click Through Rate (%)")
+
+  svg.selectAll(".dot")
+      .data(data)
+    .enter().append("svg:circle")
+      .attr("class", "dot")
+      .attr("r",  function(d) { return Math.sqrt(Math.sqrt(d.Sent));})
+      .attr("cx", function(d) { return x(d.OR); })
+      .attr("cy", function(d) { return y(d.CTR); })
+      .style("fill", function(d) { return color(d.Sent); })
+      .on("mouseover", function(d) { return tooltip.text("Date:" + d.date_sent + ", " + d.day + ", Sent:" + d.Sent + "k, OR:" + d.OR +"%, CTR:"+ d.CTR + "%")
+                                                    .style("visibility", "visible")
+                                                    .style("left", (d3.event.pageX) + "px")
+                                                    .style("top", (d3.event.pageY -28)+ "px")
+                                                    .duration(100)
+                                                    .transition(1000); })
+      .on("mouseout", function(d) { return tooltip.style("visibility", "hidden"); });
+
+  var legend = svg.selectAll(".legend")
+      .data(color.domain())
+    .enter().append("g")
+      .attr("class", "legend")
+      .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+
+  legend.append("rect")
+      .attr("x", width - 18)
+      .attr("width", 18)
+      .attr("height", 18)
+      .style("fill", color);
+
+  legend.append("text")
+      .attr("x", width - 24)
+      .attr("y", 9)
+      .attr("dy", ".35em")
+      .style("text-anchor", "end")
+      .text(function(d) { return d; });
+
+});
+
+</script>
+
