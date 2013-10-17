@@ -114,9 +114,7 @@ d3.csv("Shops_Email_Dash_daily.csv", function(error, data) {
       .on("mouseover", function(d) { return tooltip.text("Date:" + d.date_sent + ", " + d.day + ", Sent:" + d.Sent + "k, OR:" + d.OR +"%, CTR:"+ d.CTR + "%")
                                                     .style("visibility", "visible")
                                                     .style("left", (d3.event.pageX) + "px")
-                                                    .style("top", (d3.event.pageY -28)+ "px")
-                                                    .duration(100)
-                                                    .transition(1000); })
+                                                    .style("top", (d3.event.pageY -28)+ "px"); })
       .on("mouseout", function(d) { return tooltip.style("visibility", "hidden"); });
 
   var legend = svg.selectAll(".legend")
